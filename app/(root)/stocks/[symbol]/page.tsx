@@ -3,6 +3,7 @@ import WatchlistButton from "@/components/WatchlistButton";
 import { auth } from "@/lib/better-auth/auth";
 import { headers } from "next/headers";
 import { getWatchlistSymbolsByEmail } from "@/lib/actions/watchlist.actions";
+import { fetchJSON } from "@/lib/actions/finnhub.actions";
 import {
   SYMBOL_INFO_WIDGET_CONFIG,
   CANDLE_CHART_WIDGET_CONFIG,
@@ -14,13 +15,31 @@ import {
 
 export default async function StockDetails({ params }: StockDetailsPageProps) {
   const { symbol } = await params;
+  const upperSymbol = symbol.toUpperCase();
   const scriptUrl = `https://s3.tradingview.com/external-embedding/embed-widget-`;
 
   const session = await auth.api.getSession({ headers: await headers() });
   const watchlistSymbols = session?.user?.email
     ? await getWatchlistSymbolsByEmail(session.user.email)
     : [];
-  const isInWatchlist = watchlistSymbols.includes(symbol.toUpperCase());
+  const isInWatchlist = watchlistSymbols.includes(upperSymbol);
+
+  let companyName = upperSymbol;
+  try {
+    const token =
+      process.env.FINNHUB_API_KEY ??
+      process.env.NEXT_PUBLIC_NEXT_PUBLIC_FINNHUB_API_KEY ??
+      "";
+    if (token) {
+      const profile = await fetchJSON<{ name?: string }>(
+        `https://finnhub.io/api/v1/stock/profile2?symbol=${upperSymbol}&token=${token}`,
+        3600,
+      );
+      if (profile?.name) companyName = profile.name;
+    }
+  } catch {
+    companyName = upperSymbol;
+  }
 
   return (
     <div className="flex min-h-screen p-4 md:p-6 lg:p-8">
@@ -47,8 +66,8 @@ export default async function StockDetails({ params }: StockDetailsPageProps) {
         <div className="flex flex-col gap-6">
           <div className="flex items-center justify-between">
             <WatchlistButton
-              symbol={symbol.toUpperCase()}
-              company={symbol.toUpperCase()}
+              symbol={upperSymbol}
+              company={companyName}
               isInWatchlist={isInWatchlist}
             />
           </div>

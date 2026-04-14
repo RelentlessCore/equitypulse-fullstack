@@ -1,32 +1,47 @@
 import { getUserWatchlist } from "@/lib/actions/watchlist.actions";
 import WatchlistButton from "@/components/WatchlistButton";
 import Link from "next/link";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, Star } from "lucide-react";
 
 const WatchlistPage = async () => {
   const watchlist = await getUserWatchlist();
 
   return (
-    <div className="min-h-screen home-wrapper">
+    <div className="min-h-screen">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-semibold text-gray-100">My Watchlist</h1>
-        <p className="text-gray-500 text-sm">
-          {watchlist.length} stock{watchlist.length !== 1 ? "s" : ""}
-        </p>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-100">My Watchlist</h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Track your favorite stocks and get personalized daily summaries
+          </p>
+        </div>
+        <div className="flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg px-4 py-2">
+          <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+          <span className="text-yellow-500 font-semibold text-sm">
+            {watchlist.length} stock{watchlist.length !== 1 ? "s" : ""} tracked
+          </span>
+        </div>
       </div>
 
       {watchlist.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <TrendingUp className="w-16 h-16 text-gray-600" />
-          <h2 className="text-xl font-medium text-gray-400">
-            Your watchlist is empty
-          </h2>
-          <p className="text-gray-500 text-sm text-center max-w-md">
-            Search for stocks and click "Add to Watchlist" to track your
-            favorite stocks here.
-          </p>
-          <Link href="/" className="yellow-btn mt-2">
-            Browse Stocks
+        <div className="flex flex-col items-center justify-center py-24 gap-6 border border-gray-800 rounded-2xl bg-gray-900/30">
+          <div className="w-20 h-20 rounded-full bg-gray-800 flex items-center justify-center">
+            <TrendingUp className="w-10 h-10 text-gray-600" />
+          </div>
+          <div className="text-center">
+            <h2 className="text-xl font-semibold text-gray-300 mb-2">
+              Your watchlist is empty
+            </h2>
+            <p className="text-gray-500 text-sm max-w-sm">
+              Search for stocks and click "Add to Watchlist" to start tracking
+              your favorite companies here.
+            </p>
+          </div>
+          <Link
+            href="/"
+            className="bg-yellow-500 hover:bg-yellow-400 text-black font-semibold px-6 py-2.5 rounded-lg transition-colors"
+          >
+            Browse Dashboard
           </Link>
         </div>
       ) : (
@@ -34,25 +49,37 @@ const WatchlistPage = async () => {
           {watchlist.map((item) => (
             <div
               key={item.symbol}
-              className="flex items-center justify-between p-4 rounded-lg bg-gray-800/50 border border-gray-700 hover:border-gray-600 transition-colors"
+              className="flex items-center justify-between p-5 rounded-xl bg-gray-900/50 border border-gray-800 hover:border-gray-700 hover:bg-gray-900/80 transition-all duration-200"
             >
               <Link
                 href={`/stocks/${item.symbol}`}
-                className="flex items-center gap-4 flex-1"
+                className="flex items-center gap-4 flex-1 min-w-0"
               >
-                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-yellow-500/10 text-yellow-500 font-bold text-sm">
+                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 font-bold text-sm shrink-0">
                   {item.symbol.slice(0, 2)}
                 </div>
-                <div>
-                  <p className="text-gray-100 font-medium">{item.symbol}</p>
-                  <p className="text-gray-500 text-sm">{item.company}</p>
+                <div className="min-w-0">
+                  <p className="text-gray-100 font-semibold text-base truncate">
+                    {item.company !== item.symbol ? item.company : item.symbol}
+                  </p>
+                  <p className="text-yellow-500/80 text-sm font-medium">
+                    {item.symbol}
+                  </p>
                 </div>
               </Link>
-              <div className="flex items-center gap-4">
+
+              <div className="flex items-center gap-6 shrink-0">
                 {item.addedAt && (
-                  <p className="text-gray-600 text-xs hidden md:block">
-                    Added {new Date(item.addedAt).toLocaleDateString()}
-                  </p>
+                  <div className="hidden md:flex flex-col items-end">
+                    <p className="text-gray-600 text-xs">Added</p>
+                    <p className="text-gray-500 text-xs">
+                      {new Date(item.addedAt).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </p>
+                  </div>
                 )}
                 <WatchlistButton
                   symbol={item.symbol}
